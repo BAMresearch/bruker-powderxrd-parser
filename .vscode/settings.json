@@ -34,7 +34,7 @@
         "request": "launch",
         "console": "integratedTerminal",
         "justMyCode": false,
-        "program": "${workspaceFolder}/src/masterdata_parser_example/parser.py",  // path to your entry point Python module
+        "program": "${workspaceFolder}/src/bruker_powderxrd_parser/parser.py",  // path to your entry point Python module
       },
       {
         "name": "parser-example tests",

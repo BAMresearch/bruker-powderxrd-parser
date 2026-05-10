@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from masterdata_parser_example.parser import MasterdataParserExample
+from bruker_powderxrd_parser.parser import BrukerPowderXRDParser
 
 if os.getenv("_PYTEST_RAISE", "0") != "0":
 
@@ -17,4 +17,4 @@ if os.getenv("_PYTEST_RAISE", "0") != "0":
 
 @pytest.fixture(scope="module")
 def parser():
-    return MasterdataParserExample()
+    return BrukerPowderXRDParser()

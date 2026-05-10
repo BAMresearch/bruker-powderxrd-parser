@@ -12,8 +12,8 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
 ]
-name = "masterdata-parser-example"
-description = "An example parser for openBIS using the bam-masterdata interface."
+name = "bruker-powderxrd-parser"
+description = "A parser for Bruker instrumentation for Powder X-ray diffraction (XRD)."
 dynamic = ["version"]
 readme = "README.md"
 requires-python = ">=3.10"
@@ -29,8 +29,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/BAMresearch/masterdata-parser-example"
-"Bug Tracker" = "https://github.com/BAMresearch/masterdata-parser-example/issues"
+"Homepage" = "https://github.com/BAMresearch/bruker-powderxrd-parser"
+"Bug Tracker" = "https://github.com/BAMresearch/bruker-powderxrd-parser/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -43,7 +43,7 @@ dev = [
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
-include = ["src/masterdata_parser_example/*.py", "tests/*.py"]
+include = ["src/bruker_powderxrd_parser/*.py", "tests/*.py"]
 exclude = [
     ".bzr",
     ".direnv",
@@ -124,7 +124,7 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [tool.setuptools_scm]
-write_to = "src/masterdata_parser_example/_version.py"
+write_to = "src/bruker_powderxrd_parser/_version.py"
 
 [project.entry-points."bam.parsers"]
-masterdata_parser_example_entry_point = "masterdata_parser_example:masterdata_parser_example_entry_point"
+bruker_powderxrd_parser_entry_point = "bruker_powderxrd_parser:bruker_powderxrd_parser_entry_point"
