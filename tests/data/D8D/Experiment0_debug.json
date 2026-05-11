@@ -1,0 +1,47 @@
+{
+  "name": "Experiment0",
+  "xml_roots": [
+    "ActiveContentContainer.xml",
+    "DataContainer.xml",
+    "EvaluationContainer.xml",
+    "InstructionContainer.xml",
+    "MeasurementContainer.xml",
+    "PreMeasContainer.xml",
+    "RawData0.xml",
+    "TemplateContainer.xml"
+  ],
+  "metadata": {
+    "DeviceTypeDesc": "Bruker AXS D8 with DAVINCI Diffractometer",
+    "SerialNo": "205225",
+    "AppType": "PowderDiffraction",
+    "SampleName": "Si-Std_SRM640d",
+    "TimeStampStarted": "2025-12-01T14:33:19.4113445+01:00",
+    "TimeStampFinished": "2025-12-02T09:18:04.4902758+01:00",
+    "Unit": "Degree",
+    "Start": "10",
+    "Stop": "97.01301812970199",
+    "Increment": "0.009431283127",
+    "TimePerStep": "7",
+    "RotationSpeed": "60",
+    "Voltage": "40",
+    "Current": "40",
+    "Tube": "TubeKFLCu2KC",
+    "GoniometerType": "Theta_2Theta",
+    "Optics": [
+      "/Component/Optic/Detector/Line/PSDetector/LynxEye",
+      "/Component/Optic/SampleStage/Phi/Standard",
+      "/Component/Optic/Tubemount/Sealed",
+      "/Component/Optic/Tube/Sealed",
+      "/Component/Optic/Tube/Sealed",
+      "/Component/Optic/Monochromator/Johansson",
+      "/Component/Optic/Slit",
+      "/Component/Optic/Soller/Axial/Mini",
+      "/Component/Optic/Detector/Line/PSDetector/LynxEye"
+    ]
+  },
+  "two_theta_points": 9227,
+  "intensity_points": 9227,
+  "artifacts": {
+    "png": "tests/data/D8D/Si-Std_SRM640d_Experiment0_PXRD.png"
+  }
+}

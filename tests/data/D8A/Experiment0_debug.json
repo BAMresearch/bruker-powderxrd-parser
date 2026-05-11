@@ -1,0 +1,49 @@
+{
+  "name": "Experiment0",
+  "xml_roots": [
+    "ActiveContentContainer.xml",
+    "DataContainer.xml",
+    "EvaluationContainer.xml",
+    "InstructionContainer.xml",
+    "MeasurementContainer.xml",
+    "PreMeasContainer.xml",
+    "RawData0.xml",
+    "TemplateContainer.xml"
+  ],
+  "metadata": {
+    "DeviceTypeDesc": "Bruker AXS D8 with DAVINCI Diffractometer",
+    "SerialNo": "210481",
+    "AppType": "PowderDiffraction",
+    "SampleName": "SRM1976b_260105",
+    "TimeStampStarted": "2026-01-05T14:36:36.0268428+01:00",
+    "TimeStampFinished": "2026-01-06T09:21:15.2815994+01:00",
+    "Unit": "Degree",
+    "Start": "20",
+    "Stop": "154.99652773859202",
+    "Increment": "0.008177642824",
+    "TimePerStep": "4",
+    "RotationSpeed": "30",
+    "Voltage": "40",
+    "Current": "40",
+    "Tube": "TubeKFLCu2KC",
+    "GoniometerType": "Theta_Theta",
+    "Optics": [
+      "/Component/Optic/Detector/Line/LynxEyeXE/LynxEye3",
+      "/Component/Optic/SampleStage/Phi/Autochanger",
+      "/Component/Optic/Tubemount/Sealed",
+      "/Component/Optic/Tube/Sealed",
+      "/Component/Optic/Tube/Sealed",
+      "/Component/Optic/VarSlit/Motor",
+      "/Component/Optic/Slit",
+      "/Component/Optic/Soller/Axial/Mini",
+      "/Component/Optic/Detector/Line/LynxEyeXE/LynxEye3",
+      "/Component/Optic/Soller/Axial/DetectorAttached",
+      "/Component/Optic/Slit/DetectorAttached"
+    ]
+  },
+  "two_theta_points": 16509,
+  "intensity_points": 16509,
+  "artifacts": {
+    "png": "tests/data/D8A/SRM1976b_260105_Experiment0_PXRD.png"
+  }
+}

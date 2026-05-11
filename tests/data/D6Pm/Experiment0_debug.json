@@ -1,0 +1,52 @@
+{
+  "name": "Experiment0",
+  "xml_roots": [
+    "ActiveContentContainer.xml",
+    "DataContainer.xml",
+    "EvaluationContainer.xml",
+    "InstructionContainer.xml",
+    "MeasurementContainer.xml",
+    "PreMeasContainer.xml",
+    "RawData0.xml",
+    "TemplateContainer.xml"
+  ],
+  "metadata": {
+    "DeviceTypeDesc": "A52 Device",
+    "SerialNo": "251987",
+    "AppType": "GeneralXRD",
+    "SampleName": "A52-B128-S",
+    "TimeStampStarted": "2026-01-05T14:00:16.3171476+01:00",
+    "TimeStampFinished": "2026-01-06T06:05:49.7866379+01:00",
+    "Unit": "Degree",
+    "Start": "20.001233441",
+    "Stop": "140.004052415935",
+    "Increment": "0.008602969315",
+    "TimePerStep": "4",
+    "RotationSpeed": "30",
+    "Voltage": "40",
+    "Current": "15",
+    "Tube": "Tube",
+    "GoniometerType": "Ypsilon",
+    "Optics": [
+      "/Component/Optic/Detector/Line/LynxEyeXE/LynxEye3/Ypsilon",
+      "/Component/Optic/SampleStage/Manual/A52",
+      "/Component/Optic/Airscatter/Auto",
+      "/Component/Optic/Tubemount/B488",
+      "/Component/Optic/Tube/Sealed",
+      "/Component/Optic/Tube/Sealed",
+      "/Component/Optic/VarSlit/Motor",
+      "/Component/Optic/Soller/Axial/Standard",
+      "/Component/Optic/Slit",
+      "/Component/Optic/Slit",
+      "/Component/Optic/Detector/Line/LynxEyeXE/LynxEye3/Ypsilon",
+      "/Component/Optic/Soller/Axial/DetectorAttached",
+      "/Component/Optic/Soller/Axial/Standard",
+      "/Component/Optic/Slit"
+    ]
+  },
+  "two_theta_points": 13950,
+  "intensity_points": 13950,
+  "artifacts": {
+    "png": "tests/data/D6Pm/A52-B128-S_Experiment0_PXRD.png"
+  }
+}

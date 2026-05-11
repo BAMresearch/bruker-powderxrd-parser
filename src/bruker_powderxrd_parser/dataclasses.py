@@ -43,3 +43,13 @@ class BrukerExperiment:
     intensities: list[float] = field(default_factory=list)
 
     artifacts: dict[str, Path] = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "xml_roots": list(self.xml_roots.keys()),
+            "metadata": self.metadata,
+            "two_theta_points": len(self.two_theta),
+            "intensity_points": len(self.intensities),
+            "artifacts": {k: str(v) for k, v in self.artifacts.items()},
+        }
