@@ -1,14 +1,284 @@
+import xml.etree.ElementTree as ET
+from pathlib import Path
+from zipfile import ZipFile
+
+import matplotlib.pyplot as plt
 from bam_masterdata.datamodel.object_types import ExperimentalStep
 from bam_masterdata.parsing import AbstractParser
 
+from bruker_powderxrd_parser.dataclasses import BrukerExperiment, MetadataRule
+from bruker_powderxrd_parser.utils import find_elements
+
 
 class BrukerPowderXRDParser(AbstractParser):
-    def parse(self, files, collection, logger):
-        synthesis = ExperimentalStep(name="Synthesis")
-        synthesis_id = collection.add(synthesis)
-        measurement = ExperimentalStep(name="Measurement")
-        measurement_id = collection.add(measurement)
-        _ = collection.add_relationship(synthesis_id, measurement_id)
-        logger.info(
-            "Parsing finished: Added examples synthesis and measurement experimental steps."
+    """
+    Parser for Bruker .brml powder XRD files.
+
+    Architecture:
+        BRML file
+            -> multiple experiments in folders ExperimentX/
+                -> XML roots
+                -> metadata
+                -> PXRD data (extracted from RawData0.xml)
+                -> artifacts
+    """
+
+    METADATA_RULES = {
+        "DeviceTypeDesc": MetadataRule(
+            xml_file="DataContainer.xml",
+            tag="DeviceTypeDesc",
+            method="text",
+        ),
+        "SerialNo": MetadataRule(
+            xml_file="DataContainer.xml",
+            tag="SerialNo",
+            method="text",
+        ),
+        "AppType": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="AppType",
+            method="text",
+        ),
+        "SampleName": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="InfoItem",
+            method="attribute_with_filter",
+            attribute="Value",
+            filter_attribute="Name",
+            filter_value="SampleName",
+        ),
+        "TimeStampStarted": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="TimeStampStarted",
+            method="text",
+        ),
+        "TimeStampFinished": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="TimeStampFinished",
+            method="text",
+        ),
+        "Unit": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="Unit",
+            method="attribute",
+            attribute="Base",
+        ),
+        "Start": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="Start",
+            method="text",
+        ),
+        "Stop": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="Stop",
+            method="text",
+        ),
+        "Increment": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="Increment",
+            method="text",
+        ),
+        "TimePerStep": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="TimePerStep",
+            method="text",
+        ),
+        "RotationSpeed": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="RotationSpeed",
+            method="attribute",
+            attribute="Value",
+        ),
+        "Voltage": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="Voltage",
+            method="attribute",
+            attribute="Value",
+        ),
+        "Current": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="Current",
+            method="attribute",
+            attribute="Value",
+        ),
+        "Tube": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="Tube",
+            method="attribute",
+            attribute="LogicName",
+        ),
+        "GoniometerType": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="GoniometerType",
+            method="text",
+        ),
+    }
+
+    def _group_xml_by_experiment(self, xml_files: list[str]) -> dict[str, dict]:
+        """
+        Returns:
+
+        {
+            "Experiment0": {
+                "RawData0.xml": "full/archive/path/RawData0.xml",
+                ...
+            }
+        }
+        """
+        grouped = {}
+        for xml_file in xml_files:
+            path = Path(xml_file)
+            # remove top-level archive directory
+            parts = path.parts[1:]
+
+            if len(parts) < 2:
+                continue
+
+            experiment_name = parts[0]
+            filename = parts[-1]
+
+            if not experiment_name.startswith("Experiment"):
+                continue
+
+            grouped.setdefault(experiment_name, {})
+            grouped[experiment_name][filename] = xml_file
+
+        return grouped
+
+    def _extract_value(self, root: ET.Element, rule: MetadataRule):
+
+        for elem in find_elements(root, rule.tag):
+            if rule.method == "text":
+                return elem.text
+
+            if rule.method == "attribute":
+                return elem.attrib.get(rule.attribute)
+
+            if rule.method == "attribute_with_filter":
+                if elem.attrib.get(rule.filter_attribute) == rule.filter_value:
+                    return elem.attrib.get(rule.attribute)
+
+        return None
+
+    def extract_metadata(
+        self,
+        experiment: BrukerExperiment,
+    ) -> dict:
+        metadata = {}
+        for key, rule in self.METADATA_RULES.items():
+            root = experiment.xml_roots.get(rule.xml_file)
+
+            if root is None:
+                continue
+
+            value = self._extract_value(root, rule)
+            if value is not None:
+                metadata[key] = value
+
+        # Dynamic metadata examples
+        metadata["Optics"] = []
+        raw_root = experiment.xml_roots.get("RawData0.xml")
+        if raw_root is not None:
+            for elem in find_elements(raw_root, "BeringInfo"):
+                metadata["Optics"].append(elem.attrib.get("ClassPath", ""))
+
+        return metadata
+
+    def extract_xrd_data(
+        self, experiment: BrukerExperiment
+    ) -> tuple[list[float], list[float]]:
+
+        root = experiment.xml_roots.get("RawData0.xml")
+        if root is None:
+            return [], []
+
+        # Extract intensities from Datum tags
+        intensities = []
+        for datum in find_elements(root, "Datum"):
+            if datum.text is None:
+                continue
+
+            vals = datum.text.strip().split(",")
+
+            try:
+                intensities.append(float(vals[-1]))
+            except ValueError:
+                continue
+
+        # Extract Start and Increment from metadata to calculate 2Theta values
+        if not intensities:
+            return [], []
+        metadata = experiment.metadata
+        try:
+            start = float(metadata["Start"])
+            increment = float(metadata["Increment"])
+        except (KeyError, ValueError):
+            return [], []
+        two_theta = [start + (i * increment) for i in range(len(intensities))]
+
+        return two_theta, intensities
+
+    def generate_plot(
+        self, experiment: BrukerExperiment, output_dir: str | Path, dpi: int = 300
+    ) -> Path | None:
+
+        if not experiment.two_theta or not experiment.intensities:
+            return None
+
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        sample_name = experiment.metadata.get(
+            "SampleName",
+            experiment.name,
         )
+
+        filename = f"{sample_name}_{experiment.name}_PXRD.png"
+        outpath = output_dir / filename
+
+        plt.figure(figsize=(10, 5))
+        plt.plot(experiment.two_theta, experiment.intensities, linewidth=0.8)
+        plt.title(sample_name)
+
+        plt.xlabel("2Theta (degrees)")
+        plt.ylabel("Intensity (counts)")
+
+        plt.tight_layout()
+        plt.savefig(outpath, dpi=dpi)
+        plt.close()
+
+        experiment.artifacts["png"] = outpath
+        return outpath
+
+    def parse(self, files, collection, logger):
+        self.logger = logger
+
+        for file in files:
+            if not file.endswith(".brml"):
+                logger.error(f"File {file} is not a .brml file. Skipping.")
+                continue
+            brml_file = Path(file)
+
+            experiments = []
+            with ZipFile(brml_file, "r") as archive:
+                xml_files = [f for f in archive.namelist() if f.endswith(".xml")]
+                grouped_xmls = self._group_xml_by_experiment(xml_files)
+                for experiment_name, xml_fs in grouped_xmls.items():
+                    xml_roots = {}
+                    for filename, archive_path in xml_fs.items():
+                        with archive.open(archive_path) as f:
+                            xml_roots[filename] = ET.parse(f).getroot()
+
+                    experiment = BrukerExperiment(
+                        name=experiment_name,
+                        xml_roots=xml_roots,
+                    )
+                    experiment.metadata = self.extract_metadata(experiment)
+                    experiment.two_theta, experiment.intensities = (
+                        self.extract_xrd_data(experiment)
+                    )
+
+                    experiments.append(experiment)
+
+                    # Generating plot
+                    _ = self.generate_plot(experiment, output_dir=brml_file.parent)

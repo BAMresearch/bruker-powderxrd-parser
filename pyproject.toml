@@ -26,6 +26,7 @@ maintainers = [
 license = { file = "LICENSE" }
 dependencies = [
   "bam-masterdata>=0.6.2",
+  "matplotlib",
 ]
 
 [project.urls]
