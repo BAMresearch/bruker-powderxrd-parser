@@ -20,7 +20,7 @@ class BrukerPowderXRDParser(AbstractParser):
                 -> XML roots
                 -> metadata
                 -> PXRD data (extracted from RawData0.xml)
-                -> artifacts
+                -> artifacts (e.g., generated plots)
     """
 
     METADATA_RULES = {
@@ -146,7 +146,16 @@ class BrukerPowderXRDParser(AbstractParser):
         return grouped
 
     def _extract_value(self, root: ET.Element, rule: MetadataRule):
+        """
+        Extracts a value from the XML root based on the provided MetadataRule.
 
+        Args:
+            root (ET.Element): The XML root element to extract from
+            rule (MetadataRule): The rule defining how to extract the value
+
+        Returns:
+            Any: The extracted value or None if not found
+        """
         for elem in find_elements(root, rule.tag):
             if rule.method == "text":
                 return elem.text
@@ -160,10 +169,17 @@ class BrukerPowderXRDParser(AbstractParser):
 
         return None
 
-    def extract_metadata(
-        self,
-        experiment: BrukerExperiment,
-    ) -> dict:
+    def extract_metadata(self, experiment: BrukerExperiment) -> dict:
+        """
+        Extracts metadata from the XML roots of an experiment based on the defined METADATA_RULES and
+        stores it in the experiment.metadata dictionary.
+
+        Args:
+            experiment (BrukerExperiment): The experiment object containing XML roots and where metadata will be stored.
+
+        Returns:
+            dict: The extracted metadata.
+        """
         metadata = {}
         for key, rule in self.METADATA_RULES.items():
             root = experiment.xml_roots.get(rule.xml_file)
@@ -187,7 +203,16 @@ class BrukerPowderXRDParser(AbstractParser):
     def extract_xrd_data(
         self, experiment: BrukerExperiment
     ) -> tuple[list[float], list[float]]:
+        """
+        Extracts the 2Theta and intensity values from the RawData0.xml file of the experiment. It uses the metadata
+        to calculate the 2Theta values based on the Start and Increment values.
 
+        Args:
+            experiment (BrukerExperiment): The experiment object containing XML roots and where metadata is stored.
+
+        Returns:
+            tuple[list[float], list[float]]: The extracted 2Theta and intensity values.
+        """
         root = experiment.xml_roots.get("RawData0.xml")
         if root is None:
             return [], []
@@ -221,7 +246,18 @@ class BrukerPowderXRDParser(AbstractParser):
     def generate_plot(
         self, experiment: BrukerExperiment, output_dir: str | Path, dpi: int = 300
     ) -> Path | None:
+        """
+        Generates a plot of the PXRD data (2Theta vs Intensity) for the given experiment and saves it as a PNG
+        file in the specified output directory. The filename is constructed using the sample name and experiment name.
 
+        Args:
+            experiment (BrukerExperiment): The experiment object containing the PXRD data.
+            output_dir (str | Path): The directory where the plot will be saved.
+            dpi (int, optional): The resolution of the saved plot. Defaults to 300.
+
+        Returns:
+            Path | None: The path to the saved plot file, or None if the plot could not be generated.
+        """
         if not experiment.two_theta or not experiment.intensities:
             return None
 
@@ -259,7 +295,6 @@ class BrukerPowderXRDParser(AbstractParser):
                 continue
             brml_file = Path(file)
 
-            experiments = []
             with ZipFile(brml_file, "r") as archive:
                 xml_files = [f for f in archive.namelist() if f.endswith(".xml")]
                 grouped_xmls = self._group_xml_by_experiment(xml_files)
@@ -277,8 +312,6 @@ class BrukerPowderXRDParser(AbstractParser):
                     experiment.two_theta, experiment.intensities = (
                         self.extract_xrd_data(experiment)
                     )
-
-                    experiments.append(experiment)
 
                     # Generating plot
                     _ = self.generate_plot(experiment, output_dir=brml_file.parent)
