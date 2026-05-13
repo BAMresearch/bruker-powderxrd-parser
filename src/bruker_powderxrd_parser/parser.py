@@ -1,4 +1,4 @@
-import json
+# import json
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from zipfile import ZipFile
@@ -346,11 +346,11 @@ class BrukerPowderXRDParser(AbstractParser):
                     # Generating plot
                     _ = self.generate_plot(experiment, output_dir=brml_file.parent)
 
-                    debug_json = brml_file.parent / f"{experiment.name}_debug.json"
+                    # debug_json = brml_file.parent / f"{experiment.name}_debug.json"
 
-                    with open(debug_json, "w") as f:
-                        json.dump(
-                            experiment.to_dict(),
-                            f,
-                            indent=2,
-                        )
+                    # with open(debug_json, "w") as f:
+                    #     json.dump(
+                    #         experiment.to_dict(),
+                    #         f,
+                    #         indent=2,
+                    #     )
