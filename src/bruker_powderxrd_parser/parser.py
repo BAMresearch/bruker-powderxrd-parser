@@ -102,11 +102,40 @@ class BrukerPowderXRDParser(AbstractParser):
             method="attribute",
             attribute="Value",
         ),
-        "Tube": MetadataRule(
+        "TubeConfig": MetadataRule(
             xml_file="RawData0.xml",
             tag="Tube",
             method="attribute",
             attribute="LogicName",
+        ),
+        "TubeMaterial": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="TubeMaterial",
+            method="text",
+        ),
+        "WaveLengthAlpha1": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="WaveLengthAlpha1",
+            method="attribute",
+            attribute="Value",
+        ),
+        "WaveLengthAlpha2": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="WaveLengthAlpha2",
+            method="attribute",
+            attribute="Value",
+        ),
+        "WaveLengthAverage": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="WaveLengthAverage",
+            method="attribute",
+            attribute="Value",
+        ),
+        "WaveLengthBeta": MetadataRule(
+            xml_file="RawData0.xml",
+            tag="WaveLengthBeta",
+            method="attribute",
+            attribute="Value",
         ),
         "GoniometerType": MetadataRule(
             xml_file="RawData0.xml",

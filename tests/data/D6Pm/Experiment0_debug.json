@@ -25,7 +25,12 @@
     "RotationSpeed": "30",
     "Voltage": "40",
     "Current": "15",
-    "Tube": "Tube",
+    "TubeConfig": "Tube",
+    "TubeMaterial": "Cu",
+    "WaveLengthAlpha1": "1.5406",
+    "WaveLengthAlpha2": "1.54439",
+    "WaveLengthAverage": "1.54184",
+    "WaveLengthBeta": "1.39222",
     "GoniometerType": "Ypsilon",
     "Optics": [
       "/Component/Optic/Detector/Line/LynxEyeXE/LynxEye3/Ypsilon",

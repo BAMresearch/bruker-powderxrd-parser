@@ -25,7 +25,12 @@
     "RotationSpeed": "60",
     "Voltage": "40",
     "Current": "40",
-    "Tube": "TubeKFLCu2KC",
+    "TubeConfig": "TubeKFLCu2KC",
+    "TubeMaterial": "Cu",
+    "WaveLengthAlpha1": "1.5406",
+    "WaveLengthAlpha2": "1.54439",
+    "WaveLengthAverage": "1.5418",
+    "WaveLengthBeta": "1.39222",
     "GoniometerType": "Theta_2Theta",
     "Optics": [
       "/Component/Optic/Detector/Line/PSDetector/LynxEye",
