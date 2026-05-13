@@ -144,6 +144,13 @@ class BrukerPowderXRDParser(AbstractParser):
         ),
     }
 
+    # SerialNo to wavelength mapping based on tube configuration (needs to be extended with more tube types)
+    INSTRUMENT_WAVELENGTH_MAPPING = {
+        "251987": "WaveLengthAverage",  # D6Pm
+        "205225": "WaveLengthAlpha1",  # D8D
+        "210481": "WaveLengthAverage",  # D8A
+    }
+
     def _group_xml_by_experiment(self, xml_files: list[str]) -> dict[str, dict]:
         """
         Returns:
