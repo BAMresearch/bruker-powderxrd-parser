@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0.0", "setuptools-scm>=8.0"]
+requires = ["setuptools>=61", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -25,13 +25,9 @@ maintainers = [
 ]
 license = { file = "LICENSE" }
 dependencies = [
-  "bam-masterdata>=0.6.2",
+  "bam-masterdata>=0.10.0",
   "matplotlib",
 ]
-
-[project.urls]
-"Homepage" = "https://github.com/BAMresearch/bruker-powderxrd-parser"
-"Bug Tracker" = "https://github.com/BAMresearch/bruker-powderxrd-parser/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -41,6 +37,10 @@ dev = [
   "pytest-timeout",
   "pytest-cov",
 ]
+
+[project.urls]
+"Homepage" = "https://github.com/BAMresearch/bruker-powderxrd-parser"
+"Bug Tracker" = "https://github.com/BAMresearch/bruker-powderxrd-parser/issues"
 
 [tool.ruff]
 # Exclude a variety of commonly ignored directories.
@@ -98,25 +98,13 @@ ignore = [
     "PLR5501", # else-if-used
 ]
 fixable = ["ALL"]
-# Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-# this is entirely optional, you can remove this if you wish to
-[tool.ruff.format]
-# use double quotes for strings.
-quote-style = "double"
-# indent with spaces, rather than tabs.
-indent-style = "space"
-# Like Black, respect magic trailing commas.
-skip-magic-trailing-comma = false
-# Like Black, automatically detect the appropriate line ending.
-line-ending = "auto"
 
-[tool.mypy]
-strict = false
-ignore_missing_imports = true
-follow_imports = "silent"
-no_strict_optional = true
-disable_error_code = "import, annotation-unchecked"
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.setuptools]
 package-dir = { "" = "src" }
