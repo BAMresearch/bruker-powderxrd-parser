@@ -323,6 +323,7 @@ class BrukerPowderXRDParser(AbstractParser):
         experiment.artifacts["png"] = outpath
         return outpath
 
+    # TODO check if these helper functions can be moved to bam-masterdata or bam-utils for use in other parsers as well
     def _safe_float(self, value, default=None):
         if value in [None, "", "None", "NaN"]:
             return default
@@ -408,3 +409,6 @@ class BrukerPowderXRDParser(AbstractParser):
                     )
                     measurement_id = collection.add(measurement)
                     logger.info(f"Added measurement {measurement_id} to collection.")
+
+                    # TODO attach PNG and BRML to the `measurement` as dataset
+                    # TODO try to link the measurement with the specific instrument in the inventory using SerialNo and TubeConfig metadata
