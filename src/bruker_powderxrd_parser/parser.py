@@ -4,7 +4,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import matplotlib.pyplot as plt
-from bam_masterdata.datamodel.object_types import ExperimentalStep
+from bam_masterdata.datamodel.object_types import PowderXRDMeasurement
 from bam_masterdata.parsing import AbstractParser
 
 from bruker_powderxrd_parser.dataclasses import BrukerExperiment, MetadataRule
@@ -323,6 +323,19 @@ class BrukerPowderXRDParser(AbstractParser):
         experiment.artifacts["png"] = outpath
         return outpath
 
+    def _safe_float(self, value, default=None):
+        if value in [None, "", "None", "NaN"]:
+            return default
+        try:
+            return float(value)
+        except ValueError:
+            return default
+
+    def _safe_str(self, value, default=None):
+        if value in [None, "", "None", "NaN"]:
+            return default
+        return str(value)
+
     def parse(self, files, collection, logger):
         self.logger = logger
 
@@ -353,11 +366,45 @@ class BrukerPowderXRDParser(AbstractParser):
                     # Generating plot
                     _ = self.generate_plot(experiment, output_dir=brml_file.parent)
 
-                    # debug_json = brml_file.parent / f"{experiment.name}_debug.json"
-
-                    # with open(debug_json, "w") as f:
-                    #     json.dump(
-                    #         experiment.to_dict(),
-                    #         f,
-                    #         indent=2,
-                    #     )
+                    # Adding metadata to openBIS data model
+                    serial_no = experiment.metadata.get("SerialNo", "")
+                    wavelength_key = self.INSTRUMENT_WAVELENGTH_MAPPING.get(
+                        serial_no, "WaveLengthAverage"
+                    )
+                    xray_wavelength = self._safe_float(
+                        experiment.metadata.get(wavelength_key)
+                    )
+                    measurement = PowderXRDMeasurement(
+                        name=self._safe_str(experiment.name),
+                        start_date=self._safe_str(
+                            experiment.metadata.get("TimeStampStarted")
+                        ),
+                        end_date=self._safe_str(
+                            experiment.metadata.get("TimeStampFinished")
+                        ),
+                        time_per_step=self._safe_float(
+                            experiment.metadata.get("TimePerStep")
+                        ),
+                        rotation_speed=self._safe_float(
+                            experiment.metadata.get("RotationSpeed")
+                        ),
+                        voltage=self._safe_float(experiment.metadata.get("Voltage")),
+                        current=self._safe_float(experiment.metadata.get("Current")),
+                        tube_material=self._safe_str(
+                            experiment.metadata.get("TubeMaterial")
+                        ),
+                        xray_wavelength=xray_wavelength,
+                        tube_configuration_name=self._safe_str(
+                            experiment.metadata.get("TubeConfig")
+                        ),
+                        goniometer_type=self._safe_str(
+                            experiment.metadata.get("GoniometerType")
+                        ),
+                        start_2theta=self._safe_float(experiment.metadata.get("Start")),
+                        end_2theta=self._safe_float(experiment.metadata.get("Stop")),
+                        step_size_2theta=self._safe_float(
+                            experiment.metadata.get("Increment")
+                        ),
+                    )
+                    measurement_id = collection.add(measurement)
+                    logger.info(f"Added measurement {measurement_id} to collection.")
