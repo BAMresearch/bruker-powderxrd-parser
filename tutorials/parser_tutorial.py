@@ -22,7 +22,7 @@ files_parser = {
 # Run the parser
 run_parser(
     openbis=openbis,
-    space_name="JPIZARRO_ADM",
+    space_name="YOUR_SPACE_NAME",
     project_name="BRUKER_PXRD_TEST_PROJECT",
     collection_name="BRUKER_PXRD_TEST_COLLECTION",
     files_parser=files_parser,
