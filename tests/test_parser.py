@@ -19,7 +19,7 @@ class TestBrukerFileXRDParser:
     def test_parse(self, parser):
         collection = CollectionType()
         parser.parse(
-            [TEST_FILE],
+            [str(TEST_FILE)],
             collection,
             logger,
         )
