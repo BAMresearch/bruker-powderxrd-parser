@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from bam_masterdata.logger import logger
 from bam_masterdata.metadata.entities import CollectionType
+
+TEST_FILE = Path("tests") / "data" / "D6Pm" / "A52-B128-S_20-140_0.008_4s_17h_D6Pm.brml"
 
 
 class TestBrukerPowderXRDParser:
@@ -15,7 +19,7 @@ class TestBrukerFileXRDParser:
     def test_parse(self, parser):
         collection = CollectionType()
         parser.parse(
-            [r"tests\data\D6Pm\A52-B128-S_20-140_0.008_4s_17h_D6Pm.brml"],
+            [TEST_FILE],
             collection,
             logger,
         )
