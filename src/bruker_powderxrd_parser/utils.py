@@ -1,3 +1,4 @@
+import re
 import xml.etree.ElementTree as ET
 
 
@@ -28,3 +29,14 @@ def find_elements(root: ET.Element, tag: str):
     for elem in root.iter():
         if _strip_namespace(elem.tag) == tag:
             yield elem
+
+
+def _normalize_iso_datetime(value: str | None) -> str | None:
+    if value is None:
+        return None
+
+    return re.sub(
+        r"\.(\d{6})\d+([+-]\d{2}:\d{2}|Z)$",
+        r".\1\2",
+        value,
+    )
