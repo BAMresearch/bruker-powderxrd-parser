@@ -377,10 +377,10 @@ class BrukerPowderXRDParser(AbstractParser):
                     )
                     measurement = PowderXRDMeasurement(
                         name=self._safe_str(experiment.name),
-                        start_date=self._normalize_iso_datetime(
+                        start_date=_normalize_iso_datetime(
                             self._safe_str(experiment.metadata.get("TimeStampStarted"))
                         ),
-                        end_date=self._normalize_iso_datetime(
+                        end_date=_normalize_iso_datetime(
                             self._safe_str(experiment.metadata.get("TimeStampFinished"))
                         ),
                         time_per_step=self._safe_float(
