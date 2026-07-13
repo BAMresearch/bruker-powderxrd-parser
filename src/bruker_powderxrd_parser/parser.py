@@ -4,7 +4,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import matplotlib.pyplot as plt
-from bam_masterdata.datamodel.object_types import PowderXRDMeasurement
+from bam_masterdata.datamodel.activities import PowderXRDMeasurement
 from bam_masterdata.parsing import AbstractParser
 
 from bruker_powderxrd_parser.dataclasses import BrukerExperiment, MetadataRule
