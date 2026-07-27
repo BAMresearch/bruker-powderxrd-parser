@@ -25,7 +25,7 @@ maintainers = [
 ]
 license = { file = "LICENSE" }
 dependencies = [
-  "bam-masterdata>=0.10.0",
+  "bam-masterdata>=0.11.0",
   "matplotlib",
 ]
 
@@ -115,8 +115,6 @@ where = ["src"]
 [tool.setuptools_scm]
 write_to = "src/bruker_powderxrd_parser/_version.py"
 
-[tool.uv.sources]
-bam-masterdata = { git = "https://github.com/BAMresearch/bam-masterdata.git", rev = "main" }
 
 [project.entry-points."bam.parsers"]
 bruker_powderxrd_parser_entry_point = "bruker_powderxrd_parser:bruker_powderxrd_parser_entry_point"
