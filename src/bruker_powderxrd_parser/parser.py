@@ -4,11 +4,11 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import matplotlib.pyplot as plt
-from bam_masterdata.datamodel.object_types import PowderXRDMeasurement
+from bam_masterdata.datamodel.activities import PowderXRDMeasurement
 from bam_masterdata.parsing import AbstractParser
 
 from bruker_powderxrd_parser.dataclasses import BrukerExperiment, MetadataRule
-from bruker_powderxrd_parser.utils import find_elements
+from bruker_powderxrd_parser.utils import _normalize_iso_datetime, find_elements
 
 
 class BrukerPowderXRDParser(AbstractParser):
@@ -377,11 +377,11 @@ class BrukerPowderXRDParser(AbstractParser):
                     )
                     measurement = PowderXRDMeasurement(
                         name=self._safe_str(experiment.name),
-                        start_date=self._safe_str(
-                            experiment.metadata.get("TimeStampStarted")
+                        start_date=_normalize_iso_datetime(
+                            self._safe_str(experiment.metadata.get("TimeStampStarted"))
                         ),
-                        end_date=self._safe_str(
-                            experiment.metadata.get("TimeStampFinished")
+                        end_date=_normalize_iso_datetime(
+                            self._safe_str(experiment.metadata.get("TimeStampFinished"))
                         ),
                         time_per_step=self._safe_float(
                             experiment.metadata.get("TimePerStep")
