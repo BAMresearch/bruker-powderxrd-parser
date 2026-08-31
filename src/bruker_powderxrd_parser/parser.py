@@ -1,14 +1,14 @@
 # import json
+import os
 import xml.etree.ElementTree as ET
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 
 import matplotlib.pyplot as plt
 from bam_masterdata.datamodel.activities import PowderXRDMeasurement
 from bam_masterdata.parsing import AbstractParser
-
-from bruker_powderxrd_parser.dataclasses import BrukerExperiment, MetadataRule
-from bruker_powderxrd_parser.utils import _normalize_iso_datetime, find_elements
+from data_classes import BrukerExperiment, MetadataRule
+from utils import find_elements
 
 
 class BrukerPowderXRDParser(AbstractParser):
@@ -166,21 +166,33 @@ class BrukerPowderXRDParser(AbstractParser):
         for xml_file in xml_files:
             path = Path(xml_file)
             # remove top-level archive directory
-            parts = path.parts[1:]
-
+            parts = path.parts[0:]  # RB
             if len(parts) < 2:
                 continue
 
             experiment_name = parts[0]
             filename = parts[-1]
-
             if not experiment_name.startswith("Experiment"):
                 continue
 
             grouped.setdefault(experiment_name, {})
             grouped[experiment_name][filename] = xml_file
+        print("grouped end")
 
         return grouped
+
+    def _get_instrument(self, experiment):
+        instruments = {
+            "251987": "20260304131613732-46857",  # "D6PM",
+            "210481": "20260304131613732-46856",  # "D8A",
+            "205225": "20260508154553650-51528",  # "D8D",
+        }
+        serial_no = experiment.metadata.get("SerialNo")
+
+        if serial_no not in instruments:
+            self.logger.warning(f"Unknown instrument serial number: {serial_no!r}")
+
+        return {"perm_id": instruments[serial_no]}
 
     def _extract_value(self, root: ET.Element, rule: MetadataRule):
         """
@@ -203,7 +215,7 @@ class BrukerPowderXRDParser(AbstractParser):
             if rule.method == "attribute_with_filter":
                 if elem.attrib.get(rule.filter_attribute) == rule.filter_value:
                     return elem.attrib.get(rule.attribute)
-
+        print("extract_value end")
         return None
 
     def extract_metadata(self, experiment: BrukerExperiment) -> dict:
@@ -235,11 +247,12 @@ class BrukerPowderXRDParser(AbstractParser):
             for elem in find_elements(raw_root, "BeringInfo"):
                 metadata["Optics"].append(elem.attrib.get("ClassPath", ""))
 
+        print("extract metadata end")
         return metadata
 
     def extract_xrd_data(
-        self, experiment: BrukerExperiment
-    ) -> tuple[list[float], list[float]]:
+        self, experiment: BrukerExperiment, output_dir: str | Path | None = None
+    ) -> tuple[list[float], list[float], Path | None]:
         """
         Extracts the 2Theta and intensity values from the RawData0.xml file of the experiment. It uses the metadata
         to calculate the 2Theta values based on the Start and Increment values.
@@ -248,11 +261,11 @@ class BrukerPowderXRDParser(AbstractParser):
             experiment (BrukerExperiment): The experiment object containing XML roots and where metadata is stored.
 
         Returns:
-            tuple[list[float], list[float]]: The extracted 2Theta and intensity values.
+            tuple[list[float], list[float], Path | None]: The extracted 2Theta and intensity values and the path to the TXT file.
         """
         root = experiment.xml_roots.get("RawData0.xml")
         if root is None:
-            return [], []
+            return [], [], None
 
         # Extract intensities from Datum tags
         intensities = []
@@ -269,20 +282,40 @@ class BrukerPowderXRDParser(AbstractParser):
 
         # Extract Start and Increment from metadata to calculate 2Theta values
         if not intensities:
-            return [], []
+            return [], [], None
         metadata = experiment.metadata
         try:
             start = float(metadata["Start"])
             increment = float(metadata["Increment"])
         except (KeyError, ValueError):
-            return [], []
+            return [], [], None
         two_theta = [start + (i * increment) for i in range(len(intensities))]
 
-        return two_theta, intensities
+        sample_name = experiment.metadata.get(
+            "SampleName",
+            experiment.name,
+        )
+        filename = f"{sample_name}_{experiment.name}_PXRD.txt"
+
+        if output_dir is None:
+            caller_frame = __import__("inspect").currentframe().f_back
+            brml_file = caller_frame.f_locals.get("brml_file") if caller_frame else None
+            output_dir = Path(brml_file).parent if brml_file is not None else Path.cwd()
+        else:
+            output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        outxypath = output_dir / filename
+        with outxypath.open("w", encoding="utf-8") as xy_file:
+            xy_file.write("two_theta\tintensity\n")
+            for x_value, y_value in zip(two_theta, intensities):
+                xy_file.write(f"{x_value}\t{y_value}\n")
+
+        return two_theta, intensities, outxypath
 
     def generate_plot(
         self, experiment: BrukerExperiment, output_dir: str | Path, dpi: int = 300
     ) -> Path | None:
+        global outpath
         """
         Generates a plot of the PXRD data (2Theta vs Intensity) for the given experiment and saves it as a PNG
         file in the specified output directory. The filename is constructed using the sample name and experiment name.
@@ -305,9 +338,14 @@ class BrukerPowderXRDParser(AbstractParser):
             "SampleName",
             experiment.name,
         )
-
+        experimentname = experiment.name
+        print("experimentname:", experimentname)
         filename = f"{sample_name}_{experiment.name}_PXRD.png"
+        print("filename png:", filename)  # RB
         outpath = output_dir / filename
+        self.outpath = outpath
+        BrukerPowderXRDParser.outpath = outpath
+        print("outpath:", outpath)  # RB
 
         plt.figure(figsize=(10, 5))
         plt.plot(experiment.two_theta, experiment.intensities, linewidth=0.8)
@@ -344,8 +382,8 @@ class BrukerPowderXRDParser(AbstractParser):
             if not file.endswith(".brml"):
                 logger.error(f"File {file} is not a .brml file. Skipping.")
                 continue
-            brml_file = Path(file)
-
+            brml_file = Path(file)  # RB
+            mybrml = brml_file.parts[-1]  # RB
             with ZipFile(brml_file, "r") as archive:
                 xml_files = [f for f in archive.namelist() if f.endswith(".xml")]
                 grouped_xmls = self._group_xml_by_experiment(xml_files)
@@ -354,18 +392,19 @@ class BrukerPowderXRDParser(AbstractParser):
                     for filename, archive_path in xml_fs.items():
                         with archive.open(archive_path) as f:
                             xml_roots[filename] = ET.parse(f).getroot()
-
                     experiment = BrukerExperiment(
-                        name=experiment_name,
+                        # RB                        name=experiment_name,
+                        name=mybrml,  # RB
                         xml_roots=xml_roots,
                     )
                     experiment.metadata = self.extract_metadata(experiment)
-                    experiment.two_theta, experiment.intensities = (
-                        self.extract_xrd_data(experiment)
+                    experiment.two_theta, experiment.intensities, outxypath = (
+                        self.extract_xrd_data(experiment, output_dir=brml_file.parent)
                     )
-
                     # Generating plot
-                    _ = self.generate_plot(experiment, output_dir=brml_file.parent)
+                    plotpath = self.generate_plot(
+                        experiment, output_dir=brml_file.parent
+                    )  # RB
 
                     # Adding metadata to openBIS data model
                     serial_no = experiment.metadata.get("SerialNo", "")
@@ -376,12 +415,12 @@ class BrukerPowderXRDParser(AbstractParser):
                         experiment.metadata.get(wavelength_key)
                     )
                     measurement = PowderXRDMeasurement(
-                        name=self._safe_str(experiment.name),
-                        start_date=_normalize_iso_datetime(
-                            self._safe_str(experiment.metadata.get("TimeStampStarted"))
+                        name=self._safe_str(Path(experiment.name).stem),
+                        start_date=self._safe_str(
+                            experiment.metadata.get("TimeStampStarted")
                         ),
-                        end_date=_normalize_iso_datetime(
-                            self._safe_str(experiment.metadata.get("TimeStampFinished"))
+                        end_date=self._safe_str(
+                            experiment.metadata.get("TimeStampFinished")
                         ),
                         time_per_step=self._safe_float(
                             experiment.metadata.get("TimePerStep")
@@ -407,8 +446,19 @@ class BrukerPowderXRDParser(AbstractParser):
                             experiment.metadata.get("Increment")
                         ),
                     )
+                    # Adding plot to the measurement
+                    measurement.add_dataset(plotpath)
+
+                    # Adding the extracted PXRD data TXT file to the measurement
+                    measurement.add_dataset(outxypath)
+
+                    # Adding the original BRML file to the measurement
+                    measurement.add_dataset(file)
+
+                    # Adding measurment to the collection
                     measurement_id = collection.add(measurement)
                     logger.info(f"Added measurement {measurement_id} to collection.")
 
-                    # TODO attach PNG and BRML to the `measurement` as dataset
-                    # TODO try to link the measurement with the specific instrument in the inventory using SerialNo and TubeConfig metadata
+                    instrument = self._get_instrument(experiment)
+                    collection.add_relationship(instrument, measurement_id)
+                    logger.info("Added instrument as parent.")
