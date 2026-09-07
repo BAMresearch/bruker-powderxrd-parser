@@ -427,7 +427,6 @@ class BrukerPowderXRDParser(AbstractParser):
                 continue
 
             brml_file = Path(file)
-            brml_name = brml_file.name
 
             with ZipFile(brml_file, "r") as archive:
                 xml_files = [
