@@ -7,8 +7,9 @@ from zipfile import ZipFile
 import matplotlib.pyplot as plt
 from bam_masterdata.datamodel.activities import PowderXRDMeasurement
 from bam_masterdata.parsing import AbstractParser
-from data_classes import BrukerExperiment, MetadataRule
 from utils import find_elements
+
+from .data_classes import BrukerExperiment, MetadataRule
 
 
 class BrukerPowderXRDParser(AbstractParser):
