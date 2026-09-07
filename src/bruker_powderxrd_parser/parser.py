@@ -5,6 +5,9 @@ from zipfile import ZipFile
 import matplotlib
 
 matplotlib.use("Agg")
+import re
+from datetime import datetime
+
 import matplotlib.pyplot as plt
 from bam_masterdata.datamodel.activities import PowderXRDMeasurement
 from bam_masterdata.parsing import AbstractParser
@@ -388,6 +391,30 @@ class BrukerPowderXRDParser(AbstractParser):
 
         return str(value)
 
+    def _normalize_iso_datetime(self, value: str, field_name: str) -> str:
+        """Normalize ISO datetime strings to Python-compatible ISO format."""
+
+        if not isinstance(value, str):
+            raise ValueError(
+                f"Invalid datetime format for '{field_name}': "
+                f"Expected ISO format string, got {value!r}"
+            )
+
+        # Truncate fractional seconds to Python's maximum of 6 digits.
+        value = re.sub(
+            r"(\.\d{6})\d+([+-]\d{2}:\d{2}|Z)$",
+            r"\1\2",
+            value,
+        )
+
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00")).isoformat()
+        except ValueError as exc:
+            raise ValueError(
+                f"Invalid datetime format for '{field_name}': "
+                f"Expected ISO format string, got {value!r}"
+            ) from exc
+
     def parse(self, files, collection, logger):
         self.logger = logger
 
@@ -465,11 +492,13 @@ class BrukerPowderXRDParser(AbstractParser):
 
                     measurement_data = {
                         "name": brml_file.stem,
-                        "start_date": self._safe_str(
-                            experiment.metadata.get("TimeStampStarted")
+                        "start_date": self._normalize_iso_datetime(
+                            experiment.metadata.get("TimeStampStarted"),
+                            "TimeStampStarted",
                         ),
-                        "end_date": self._safe_str(
-                            experiment.metadata.get("TimeStampFinished")
+                        "end_date": self._normalize_iso_datetime(
+                            experiment.metadata.get("TimeStampFinished"),
+                            "TimeStampFinished",
                         ),
                         "rotation_speed": self._safe_float(
                             experiment.metadata.get("RotationSpeed")
