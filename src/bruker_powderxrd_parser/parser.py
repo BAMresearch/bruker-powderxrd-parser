@@ -208,7 +208,7 @@ class BrukerPowderXRDParser(AbstractParser):
                 serial_no,
             )
 
-        return {"perm_id": perm_id}
+        return {"permId": perm_id}
 
     def _extract_value(
         self,
