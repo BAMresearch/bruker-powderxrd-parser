@@ -286,7 +286,7 @@ def test_instrument_mapping(
     parent, child = collection.add_relationship.call_args.args
 
     assert isinstance(parent, dict)
-    assert parent["perm_id"] == expected_perm_id
+    assert parent["permId"] == expected_perm_id
     assert child is not None
 
 
@@ -394,7 +394,7 @@ def test_get_instrument(parser, serial_no, expected_perm_id):
     result = parser._get_instrument(experiment)
 
     assert result == {
-        "perm_id": expected_perm_id,
+        "permId": expected_perm_id,
     }
 
 
@@ -409,7 +409,7 @@ def test_get_instrument_unknown_serial(parser):
     result = parser._get_instrument(experiment)
 
     assert result == {
-        "perm_id": None,
+        "permId": None,
     }
 
 
